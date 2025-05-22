@@ -1,0 +1,20 @@
+1 Sugestões Futuras Para o componente Chat Messages
+1.1 Loading melhor pro áudio: tipo mostrar um ícone de loading enquanto o áudio tá sendo gerado.
+1.2 Salvar histórico em cache/localStorage ou no MongoDB.
+1.3 Mostrar tempo de geração da resposta (útil pra debugging/performance).
+1.4 Modo dark/light automático ou via toggle.
+1.5 Botão de "copiar resposta" — clássico e muito usado.
+
+2 localStorage
+2.1 Ao clciar em cima do chat criado, o localStorage Salva
+as messages.
+2.2 Cada chat criado terá suas mensagens salvas com localStorage
+
+3 Cores para o tema claro:
+3.1 Ciano suave: #a3e4e9
+3.2 Laranja queimado claro: #f4c293
+3.3 Pêssego claro: #fbdab6
+3.4 Creme suave: #f7f1e6
+3.5 Laranja forte: #f6871d
+
+Para cor de fundo: a3e4e9 + f7f1e6 ou a3e4e9 + f4c293

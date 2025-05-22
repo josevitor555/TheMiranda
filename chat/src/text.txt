@@ -1,0 +1,18 @@
+Incluindo Novas Features:
+1 - Criação de Salas (Room) [ok]
+2 - localStorage para salvar as conversas [...]
+3 - Exportar a resposta da AI em formato PDF [...]
+
+/////////////////////////////////////////
+
+Estrutura exemplar do localStorage
+{
+  "abc123": {
+    "title": "Ideias pro micro SaaS",
+    "createdAt": "2025-04-17T13:45:22.000Z",
+    "messages": [
+      { "role": "user", "content": "E aí TARS, bora trabalhar?" },
+      { "role": "tars", "content": "Bora, capitão! Qual a missão de hoje?" }
+    ]
+  }
+}
