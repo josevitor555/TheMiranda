@@ -16,3 +16,5 @@ Estrutura exemplar do localStorage
     ]
   }
 }
+henrrik cavalcante de sousa
+jose vitor de sousa feitosa

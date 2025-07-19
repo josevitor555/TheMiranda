@@ -11,7 +11,7 @@ import useSound from "use-sound";
 import ChatWelcome from "./ChatWelcome";
 
 // Interactive icons
-import { AudioLines, Pen } from "lucide-react";
+import { AudioLines } from "lucide-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 // import { faHippo } from "@fortawesome/free-regular-svg-icons";
@@ -33,7 +33,7 @@ import PdfGenerator from "./PdfGenerator";
 import ExportTableToExcel from "./ExportTableToExcel";
 
 // Message component
-const ChatMessages = ({ messages, setAudioUrls, setLastAudioId, isShareModalOpen }) => {
+const ChatMessages = ({ messages, setAudioUrls, setLastAudioId }) => {
   const messagesEndRef = useRef(null); // Ref to scroll to the last message
   const [skeleton, setSkeleton] = useState(false); // Controls the animated loader
 
@@ -64,16 +64,6 @@ const ChatMessages = ({ messages, setAudioUrls, setLastAudioId, isShareModalOpen
       }, 100);
     }
   }, [messages]);
-
-  {isShareModalOpen && (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded-lg text-black w-96">
-        <h2 className="text-xl font-bold mb-2">Compartilhar mensagem</h2>
-        <p>Você pode copiar o conteúdo ou enviar para outra pessoa.</p>
-        {/* aqui você bota os botões ou links de ação */}
-      </div>
-    </div>
-  )}
   
   return (
     <div className="chat_session">

@@ -1,114 +1,145 @@
-import dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from .env file
+// Import dotenv
+import dotenv from "dotenv";
+dotenv.config();
 
-// import express from 'express';
-import User from '../models/insertUser.js'; // Import the User model to interact with the database
-import bcrypt from 'bcryptjs'; // Import bcrypt for password hashing
-import jwt from 'jsonwebtoken'; // Import jsonwebtoken for generating JWT tokens
+// Import bcrypt
+import bcrypt from "bcryptjs";
 
-// Route for user registration
-export const register = ('/register', async (req, res) => {
-    const { name, email, password } = req.body; // Destructure the request body to get name, email, and password
-    
-      try {
+// Import jwt
+import jwt from "jsonwebtoken";
 
-        // Check if user already exists
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-          return res.status(400).json({ message: 'User already exists.' }); // Check if user already exists
+// Import db
+import { db } from "../lib/db.js";
+
+// Register a new User
+export const register = async (req, res) => {
+
+    // Log the body
+    console.log("BODY:", req.body);
+
+    // Destructure the request body to get username, email, and password
+    const { username, email, password } = req.body;
+
+    try {
+        const [rows] = await db.query("SELECT * FROM usuarios WHERE email = ?", [email]);
+        if (rows.length > 0) {
+            return res.status(409).json({
+                message: "User already existed."
+            });
         }
-    
-        // Crypt the password
-        const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
-    
-        // Create a new user
-        const user = new User({ name, email, password: hashedPassword });
-    
-        // Save the user to the database
-        await user.save().then(() => {
-          console.log(user);
-        }).catch((error) => {
-          console.log(error);
-        });
-    
-        // Generate JWT token with user ID and secret key
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        
-        // Send response with token and user info
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert user into database
+        const [result] = await db.query(
+            "INSERT INTO usuarios (username, email, password) VALUES (?, ?, ?)",
+            [username, email, hashedPassword]
+        );
+
+        // Log the result
+        console.log("INSERT result:", result);
+
+        // Generate token
+        const token = jwt.sign({ id: result.insertId }, process.env.JWT_KEY, { expiresIn: '3h' });
+
+        // Send response
         res.status(201).json({
-          token,
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email
-          }
+            message: "User successfully registered",
+            token
         });
-      
-      } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Server error' });
-    }
-});
 
-// Route for user login
-export const login = ('/login', async (req, res) =>  {
-    const { email, password } = req.body; // Destructure the request body to get email and password
-    
-      try {
-        // Found user in the database
-        const user = await User.findOne({ email });
-        if (!user) {
-          return res.status(400).json({ message: 'Invalid credentials' }); // Check if user exists
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+// Login a user
+export const login = async (req, res) => {
+
+    // Log the request
+    const { email, password } = req.body;
+
+    try {
+
+        // Check if user exists
+        const [rows] = await db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
         }
-    
-        // Compare passwords
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) {
-          return res.status(400).json({ message: 'Invalid credentials.' }); // Check if password is valid
+
+        // Check if password is correct
+        const isMatch = await bcrypt.compare(password, rows[0].password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Senha incorreta' });
         }
-    
-        // Generate JWT token with user ID and secret key
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
-        // Send response with token and user info
+
+        // Generate token
+        const token = jwt.sign({ id: rows[0].id }, process.env.JWT_KEY, { expiresIn: '3h' });
+        console.log("Generated token: ", token);
+
+        // Send response
+        res.status(200).json({ token });
+
+    } catch (error) {
+
+        // Log the error
+        res.status(500).json({
+            error: error.message
+        });
+    }
+};
+
+// Logout a user
+export const logoutAccount = async (req, res) => {
+    try {
+
+        // Log the request
+        const userId = req.userId;
+
+        // Delete user from database
+        const [result] = await db.query("DELETE FROM usuarios WHERE id = ?", [userId]);
+
+        // Log the result
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "User not found."
+            });
+        }
+
+        // Send response
         res.status(200).json({
-          token,
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email
-          }
+            message: "Account deleted successfully."
         });
-      
-      } catch (error) {
+
+    } catch (error) {
+        // Log the error
         console.error(error);
-        return res.status(500).json({ message: 'Error fetching user' });
-    }
-});
 
-// Delete account
-export const deleteAccount = async(req, res) => {
-  try {
-    const userId = req.user.id;
-    if (!userId) {
-      console.error("No user ID in the request");
-      return res.status(400).json({ message: "User ID missing" });
+        // Send response
+        res.status(500).json({
+            message: "Error deleting account."
+        });
     }
-
-    const deleteUser = await User.findByIdAndDelete(userId);
-    if (!deleteUser) {
-      return res.status(404).json({
-        message: "User not found"
-      });
-    } else {
-      console.log(`User with ID ${userId} deleted successfully`);
-    }
-
-    res.status(200).json();
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error to delete account"
-    });
-  }
 }
+
+// Protected route controller
+export const home = async (req, res) => {
+
+    try {
+        const [rows] = await db.query('SELECT id, username, email, created_at FROM usuarios WHERE id = ?', [req.userId]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' })
+        };
+
+        res.status(200).json({
+            user: rows[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

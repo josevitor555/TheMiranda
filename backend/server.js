@@ -1,3 +1,4 @@
+// Import dotenv
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -9,6 +10,12 @@ app.use(express.json());
 // Cors origin
 import cors from "cors";
 app.use(cors());
+
+// IMport route
+import authRoutes from "./routes/routes.js";
+
+// Import lib
+import { db } from "./lib/db.js";
 
 // Import Gemini SDK
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -23,11 +30,12 @@ const elevenlabs = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY,
 });
 
-// Route for Gemini API
+// Route for Gemini API for Generation responses
+// This endpoint handles requests to the Gemini API for generating responses based on user input
 app.post("/api/gemini", async (req, res) => {
   try {
     const { prompt, model } = req.body;
-    console.log(`🔍 Request received: prompt="${prompt}", model="${model}"`);
+    console.log(`Request received: prompt="${prompt}", model="${model}"`);
 
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
@@ -52,18 +60,24 @@ app.post("/api/gemini", async (req, res) => {
     });
 
     const responseText = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ Empty Response.";
-    console.log(`💬 Model "${selectedModel}" responded: ${responseText}`);
+    console.log(`Model "${selectedModel}" responded: ${responseText}`);
 
     res.status(200).json({
       response: responseText,
     });
+
   } catch (error) {
-    console.error(`❌ Error in Gemini API: ${error}`);
+    console.error(`Error in Gemini API: ${error}`);
     res.status(500).json({
       error: "Error connecting to Gemini",
     });
   }
 });
+
+// Route for Claude and ChatGPT Antrophic API
+// This endpoint handles requests to the Claude Antrophic and ChatGPT OpenAI API for generating responses based on user input
+// app.post("/api/claude", async (req, res) => {});
+// app.post("/api/chatgpt", async (req, res) => {});
 
 // Utility function to convert stream to buffer
 const streamToBuffer = async (stream) => {
@@ -90,9 +104,11 @@ app.post("/api/generate-audio", async (req, res) => {
         style: 0.0,
         use_speaker_boost: true,
       },
+
       // text_processing_options: {
       //   speed: 1.2
       // }
+
     });
 
     const audioBuffer = await streamToBuffer(audioStream);
@@ -106,13 +122,33 @@ app.post("/api/generate-audio", async (req, res) => {
   }
 });
 
-// Placeholder for Stripe API integration
-// app.post("/api/stripe", async (req, res) => {
-//   // Stripe logic here
-// });
+// Rout Text for Connect to MySql
+app.get("/connect-mysql", async(req, res) => {
+  try {
+      const [rows] = await db.query("SELECT * FROM usuarios");
+
+      if (rows.length === 0) {
+          console.log("No users found.");
+      } else {
+          console.log("Users found: ");
+          console.table(rows);
+      }
+
+      res.json(rows);
+  } catch (error) {
+      console.log("Error to connect with mysql.", error);
+      res.status(500).json({
+          success: false,
+          error: error.message
+      });
+  }
+});
+
+// Define main endpoint (/api) for the others endpoints
+app.use("/api", authRoutes);
 
 // Server listener
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Server listening on http://localhost:${PORT}`);
+  console.log(`Server listening on http://localhost:${PORT}`);
 });

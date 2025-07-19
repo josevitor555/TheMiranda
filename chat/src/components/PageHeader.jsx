@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Menu, Pen, DiamondPercent } from "lucide-react";  // Menu, edit, and highlight icons
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faX } from "@fortawesome/free-solid-svg-icons";
+import { faSun } from "@fortawesome/free-regular-svg-icons";
+// import { faSun } from "@fortawesome/free-brands-svg-icons";
 // import WaveformPlayer from "./WaveSurfer";  // Audio player component with waveform
 
 const MAX_TITLE_LENGTH = 50; // Sets the character limit for the title
@@ -79,7 +83,7 @@ const PageHeader = ({ toggleMenu, setChatHistory, selectedChatId, selectedChat }
       {/* Application logo with icon */}
       <div className="logo flex rounded-2xl px-6 py-2 cursor-pointer">
         <div className="text-2xl font-light text-center"> MIRANDA </div>
-        <DiamondPercent className="ml-2 mt-1" size={22} />
+        <FontAwesomeIcon icon={faSun} className="ml-3 text-2xl" />
       </div>
     </div>
   );
