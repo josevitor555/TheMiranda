@@ -1,7 +1,6 @@
 // Import necessary components and icons
-import { Button } from "@/components/ui/button";
 import { DivideCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import RippleEffect from "./RippleEffect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -28,7 +27,96 @@ const Sidebar = ({
   credits, // Remaining credits
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Controls the dropdown for model selection
+  const [userInfo, setUserInfo] = useState({
+    username: '',
+    email: '',
+    joinDate: ''
+  });
   const navigate = useNavigate();
+
+  // Fetch user information on component mount
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        if (token) {
+          // Option 1: Check localStorage first for user data
+          const storedUser = localStorage.getItem('userInfo');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUserInfo({
+              username: parsedUser.username || 'User',
+              email: parsedUser.email || 'user@example.com',
+              joinDate: parsedUser.created_at ? new Date(parsedUser.created_at).toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+              }) : new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            });
+            return; // Exit early if we have user data in localStorage
+          }
+
+          // Option 2: If no localStorage data, fetch from API
+          const apiUrl = import.meta.env.VITE_API_URL;
+          const response = await fetch(`${apiUrl}/api/home`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            const userInfoData = {
+              username: userData.user.username || 'User',
+              email: userData.user.email || 'user@example.com',
+              joinDate: userData.user.created_at ? new Date(userData.user.created_at).toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+              }) : new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            };
+            
+            // Save to localStorage for future use
+            localStorage.setItem('userInfo', JSON.stringify(userData.user));
+            setUserInfo(userInfoData);
+          } else {
+            // Fallback to default values
+            setUserInfo({
+              username: 'User',
+              email: 'user@example.com',
+              joinDate: new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            });
+          }
+        } else {
+          // No token found, redirect to login
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        // Set default values if API call fails
+        setUserInfo({
+          username: 'User',
+          email: 'user@example.com',
+          joinDate: new Date().toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric' 
+          })
+        });
+      }
+    };
+
+    fetchUserInfo();
+  }, [navigate]);
 
   // Function called when changing the AI model
   const handleModelChange = (modelLabel) => {
@@ -68,14 +156,14 @@ const Sidebar = ({
 
         {/* Sidebar header */}
         <div className="sidebar-header">
-          <Button className="close-btn rounded-full w-12 h-12" onClick={toggleMenu}> X </Button>
+          <button className="close-btn rounded-full w-12 h-12" onClick={toggleMenu}> X </button>
 
           {/* Avatar and model dropdown */}
           <div className="avatar-profile">
             <div className="header-avatar flex items-center gap-4 p-6">
               <img className="w-16 h-16 mr-2 rounded-full cursor-pointer" src="https://i.pinimg.com/736x/8d/12/49/8d1249009c78480d4f773714179f8d8f.jpg" alt="Avatar" />
               <div className="font-medium dark:text-white">
-                <div className="text-sm"> josevitor555 - <span className="text-gray-400"> Joined on 08, July </span></div>
+                <div className="text-sm"> {userInfo.username} - <span className="text-gray-400"> Joined on {userInfo.joinDate} </span></div>
                 <div className="text-sm mt-1 text-gray-500 dark:text-gray-400">
                   Free Plan
                   <button className="dropdown font-medium rounded-lg text-sm px-2 py-2 ml-4 mt-1 text-center inline-flex items-center cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
@@ -94,8 +182,8 @@ const Sidebar = ({
                     pointerEvents: isDropdownOpen ? "auto" : "none"
                   }}>
                     <div className="px-4 py-3 text-sm text-white">
-                      <div> josevitor555 </div>
-                      <div className="font-medium truncate text-gray-400"> josevitor@gmail.com </div>
+                      <div> {userInfo.username} </div>
+                      <div className="font-medium truncate text-gray-400"> {userInfo.email} </div>
                     </div>
                     <ul className="py-2 text-sm text-gray-300">
                       {Object.keys(modelMap).map((model) => (

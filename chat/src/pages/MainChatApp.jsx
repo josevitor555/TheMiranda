@@ -11,7 +11,7 @@ import '../App.css'
 import { v4 as uuidv4 } from 'uuid';
 
 // Interface components
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../components/Header';
 import ChatMessages from '../components/ChatMessages';
 import MessageInput from '../components/MessageInput';
 import Sidebar from '../components/Sidebar';

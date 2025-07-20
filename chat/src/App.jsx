@@ -1,7 +1,7 @@
 
 
-// Login Component
-import Login from './components/Login';
+// Login Page
+import LoginPage from "./pages/LoginPage";
 
 // React Router
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -17,7 +17,7 @@ const App = () => {
       <Routes>
 
         {/* Main route */}
-        <Route path='/' element={<Login />} />
+        <Route path='/' element={<LoginPage />} />
 
         {/* Route for home */}
         <Route path='/home' element={<MainChatApp />} />
@@ -27,7 +27,7 @@ const App = () => {
 
       </Routes>
     </BrowserRouter>
-
+    
   );
 }
 

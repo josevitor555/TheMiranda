@@ -43,10 +43,14 @@ export const register = async (req, res) => {
         // Generate token
         const token = jwt.sign({ id: result.insertId }, process.env.JWT_KEY, { expiresIn: '3h' });
 
-        // Send response
+        // Get the created user data
+        const [userRows] = await db.query("SELECT id, username, email, created_at FROM usuarios WHERE id = ?", [result.insertId]);
+        
+        // Send response with user data
         res.status(201).json({
             message: "User successfully registered",
-            token
+            token,
+            user: userRows[0]
         });
 
     } catch (error) {
@@ -81,8 +85,16 @@ export const login = async (req, res) => {
         const token = jwt.sign({ id: rows[0].id }, process.env.JWT_KEY, { expiresIn: '3h' });
         console.log("Generated token: ", token);
 
-        // Send response
-        res.status(200).json({ token });
+        // Send response with user data
+        res.status(200).json({ 
+            token,
+            user: {
+                id: rows[0].id,
+                username: rows[0].username,
+                email: rows[0].email,
+                created_at: rows[0].created_at
+            }
+        });
 
     } catch (error) {
 

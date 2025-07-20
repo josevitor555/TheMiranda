@@ -1,7 +1,6 @@
 // Import the necessary components for the modal functionality.
 import RippleEffect from "./RippleEffect";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 // Theme toast from Prime React Lib
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
@@ -92,9 +91,9 @@ const NewChatModal = ({
         </h2>
 
         {/* Button to close the modal */}
-        <Button className="close-button rounded-full" onClick={onClose}>
+        <button className="close-button rounded-full" onClick={onClose}>
           <FontAwesomeIcon icon={faX} />
-        </Button>
+        </button>
 
         <div className="border-t border-zinc-700 mb-6" />
 
